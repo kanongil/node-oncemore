@@ -9,7 +9,10 @@
   "scripts": {
     "test": "node test/test.oncemore.js"
   },
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kanongil/node-oncemore.git"
+  },
   "keywords": [
     "emitter",
     "stream",
@@ -17,5 +20,8 @@
   ],
   "author": "Gil Pedersen <gpdev@gpost.dk>",
   "license": "BSD",
-  "readmeFilename": "README.md"
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/kanongil/node-oncemore/issues"
+  }
 }
