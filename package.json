@@ -1,0 +1,21 @@
+{
+  "name": "oncemore",
+  "version": "0.0.0",
+  "description": "Attach a single \"once\" listener to multiple events",
+  "main": "oncemore.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node test/test.oncemore.js"
+  },
+  "repository": "",
+  "keywords": [
+    "emitter",
+    "stream",
+    "errors"
+  ],
+  "author": "Gil Pedersen <gpdev@gpost.dk>",
+  "license": "BSD",
+  "readmeFilename": "README.md"
+}
