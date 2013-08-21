@@ -25,21 +25,35 @@ emitter.oncemore('abc', 'def', 'ghi', function(type, arg1) {
 emitter.emit('def', 'first');
 emitter.emit('abc', 'second');
 
+emitter.on = function(ev, fn) {
+  var res = EE.prototype.on.call(this, ev, fn);
+
+  if (ev === 'def')
+    this.emit('def', 'immediate');
+
+  return res;
+}
+
 var oncemore_called2 = false;
 emitter.oncemore(['abc', 'def', 'ghi'], function(type, arg1) {
   console.error('emitted', type, arg1);
   assert.equal(arguments.length, 2);
-  assert.equal(arg1, 'first');
+  assert.equal(arg1, 'immediate');
   assert.equal(type, 'def');
   oncemore_called2 = true;
 });
 
-emitter.emit('def', 'first');
-emitter.emit('abc', 'second');
+emitter.emit('abc', 'late');
 
 process.on('exit', function() {
   assert(once_called);
   assert(oncemore_called);
   assert(oncemore_called2);
+
+  // check that no listeners remain
+  assert(!emitter._events.abc);
+  assert(!emitter._events.def);
+  assert(!emitter._events.ghi);
+
   console.error('done!');
 });

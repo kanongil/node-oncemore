@@ -40,14 +40,20 @@ function oncemore(emitter) {
         throw TypeError('listener must be a function');
 
       var types = Array.isArray(type) ? type.slice() : Array.prototype.slice.call(arguments, 0, -1);
-      var bindings = types.map(function(type) {
-        var fn = g.bind(this, type);
-        this.on(type, fn);
-        return [type, fn];
+      var bindings = [];
+      types.forEach(function(type) {
+        if (bindings) {
+          var fn = g.bind(this, type);
+          bindings.push([type, fn]);
+          this.on(type, fn);
+        }
       }, this);
 
       function g() {
-        bindings.forEach(function(binding) {
+        var remove = bindings;
+        bindings = null;
+
+        remove.forEach(function(binding) {
           this.removeListener(binding[0], binding[1]);
         }, this);
 
