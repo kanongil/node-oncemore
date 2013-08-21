@@ -39,7 +39,7 @@ function oncemore(emitter) {
       if (typeof listener !== 'function')
         throw TypeError('listener must be a function');
 
-      var types = Array.prototype.slice.call(arguments, 0, -1);
+      var types = Array.isArray(type) ? type.slice() : Array.prototype.slice.call(arguments, 0, -1);
       var bindings = types.map(function(type) {
         var fn = g.bind(this, type);
         this.on(type, fn);

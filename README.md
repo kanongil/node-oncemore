@@ -44,6 +44,8 @@ Add a **one time** listener for the events. This listener is invoked only the ne
 
 Similar to the updated `once` method, except that the first argument to the listener contains the type of the triggered event.
 
+The event names can also be passed as a single `Array`.
+
 #License
 (BSD 2-Clause License)
 
