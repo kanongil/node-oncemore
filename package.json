@@ -1,6 +1,6 @@
 {
   "name": "oncemore",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Attach a single \"once\" listener to multiple events",
   "main": "oncemore.js",
   "directories": {
