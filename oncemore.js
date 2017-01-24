@@ -1,66 +1,137 @@
 "use strict";
 
-var util = require('util');
-
 module.exports = oncemore;
 
+function OncemoreRegistration(events, handler, trailing) {
+  this.e = events;
+  this.h = handler;
+  this.t = trailing;
+}
+
+
+OncemoreRegistration.prototype.register = function (emitter) {
+
+  var self = this;
+
+  var apply = function g() {
+
+    var events = self.e;
+    self.e = [];
+    for (var idx = 0; idx < events.length; idx++) {
+      emitter.removeListener(events[idx], apply);
+    }
+
+    self.h.apply(this, arguments);
+  };
+
+  if (this.t) {
+    for (var idx = 0; idx < this.e.length; idx++) {
+      emitter.on.apply(emitter, [this.e[idx], apply].concat(this.t));
+    }
+  } else {
+    for (var idx = 0; idx < this.e.length; idx++) {
+      emitter.on(this.e[idx], apply);
+    }
+  }
+
+  return emitter;
+};
+
+
+OncemoreRegistration.prototype.registerMore = function (emitter) {
+
+  var self = this;
+  var bindings = new Array(this.e.length);
+
+  var applyType = function (type) {
+
+    return function g() {
+
+      var events = self.e;
+      self.e = [];
+      for (var idx = 0; idx < events.length; idx++) {
+        if (bindings[idx]) {
+          emitter.removeListener(events[idx], bindings[idx]);
+        }
+      }
+
+      self.h.apply(this, [type].concat(Array.prototype.slice.call(arguments)));
+    }
+  };
+
+  if (this.t) {
+    for (var idx = 0; idx < this.e.length; idx++) {
+      var type = this.e[idx];
+      var fn = bindings[idx] = applyType(type);
+      emitter.on.apply(emitter, [type, fn].concat(this.t));
+    }
+  } else {
+    for (var idx = 0; idx < this.e.length; idx++) {
+      var type = this.e[idx];
+      var fn = bindings[idx] = applyType(type);
+      emitter.on(type, fn);
+    }
+  }
+
+  return emitter;
+};
+
+
+var parseArgs = function parseArgs(args, start) {
+
+  // The listener is the first `function` argument
+
+  var listenIdx = ~~start;
+  var events;
+
+  if (listenIdx === 0 && Array.isArray(args[0])) {
+    events = args[0];
+    listenIdx = 1;
+  } else {
+    for (; listenIdx < args.length; listenIdx++) {
+      if (typeof args[listenIdx] === 'function') {
+        break;
+      }
+    }
+    events = args.slice(0, listenIdx);
+  }
+
+  if (listenIdx === args.length) {
+    throw TypeError('"listener" argument must be a function');
+  }
+
+  // Remember trailing parameters in case it is used
+
+  var trailingIdx = listenIdx + 1;
+  var trailing = args.length > trailingIdx ? args.slice(trailingIdx) : null;
+
+  return new OncemoreRegistration(events, args[listenIdx], trailing);
+};
+
+
 function oncemore(emitter) {
-  if (!emitter) return emitter;
+
+  if (!emitter) {
+    return emitter;
+  }
 
   var once = emitter.once;
   if (once && !once._old) {
     emitter.once = function(type) {
-      if (arguments.length <= 2)
+
+      if (arguments.length <= 2) {         // Skip if there isn't more than one event
         return once.apply(this, arguments);
-
-      var listener = arguments.length ? arguments[arguments.length-1] : undefined;
-      if (typeof listener !== 'function')
-        throw TypeError('listener must be a function');
-
-      var types = Array.prototype.slice.call(arguments, 0, -1);
-      types.forEach(function(type) {
-        this.on(type, g);
-      }, this);
-
-      function g() {
-        types.forEach(function(type) {
-          this.removeListener(type, g);
-        }, this);
-
-        listener.apply(this, arguments);
       }
 
-      return this;
+      var reg = parseArgs(Array.prototype.slice.call(arguments), 2);
+      return reg.register(this);
     };
     emitter.once._old = once;
 
     emitter.oncemore = function(type) {
-      var listener = arguments.length ? arguments[arguments.length-1] : undefined;
-      if (typeof listener !== 'function')
-        throw TypeError('listener must be a function');
 
-      var types = Array.isArray(type) ? type.slice() : Array.prototype.slice.call(arguments, 0, -1);
-      var bindings = [];
-      types.forEach(function(type) {
-        if (bindings) {
-          var fn = g.bind(this, type);
-          bindings.push([type, fn]);
-          this.on(type, fn);
-        }
-      }, this);
-
-      function g() {
-        var remove = bindings;
-        bindings = null;
-
-        remove.forEach(function(binding) {
-          this.removeListener(binding[0], binding[1]);
-        }, this);
-
-        listener.apply(this, arguments);
-      }
-
-      return this;
+      var reg = parseArgs(Array.prototype.slice.call(arguments), 0);
+      return reg.registerMore(this);
     };
   }
 

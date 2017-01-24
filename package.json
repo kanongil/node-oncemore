@@ -19,9 +19,12 @@
     "errors"
   ],
   "author": "Gil Pedersen <gpdev@gpost.dk>",
-  "license": "BSD",
+  "license": "BSD-2-Clause",
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/kanongil/node-oncemore/issues"
+  },
+  "devDependencies": {
+    "eventemitter3": "^2.0.2"
   }
 }
